@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+runs/
+*.pt
+*.pth
+*.weights
+*.cfg
+*.log
+.ipynb_checkpoints/
+.DS_Store
