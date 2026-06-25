@@ -1,25 +1,51 @@
-# Mask Detection Transfer Learning Repository
+﻿# Mask Detection Transfer Learning Repository
 
-This repository contains a complete workflow for transfer learning and fine-tuning mask detection models using:
+This repository implements a complete image-based mask detection pipeline using transfer learning and fine-tuning.
+It compares modern detectors (YOLOv8, YOLOv4, Faster R-CNN) with an enhanced YOLOv1-style baseline.
 
-- YOLOv8
-- YOLOv4 (Darknet integration and inference)
-- Faster R-CNN (PyTorch torchvision)
-- A YOLOv1-style model enhanced with batch normalization and regularization
+## Project Theory
+
+- Object detection locates objects in images and classifies them with bounding boxes.
+- Transfer learning reuses pre-trained networks so the model learns faster and generalizes better with limited data.
+- YOLO models are single-stage detectors optimized for speed, making them suitable for real-time mask detection.
+- Faster R-CNN is a two-stage detector that often delivers stronger localization accuracy at the cost of speed.
+- YOLOv1 was the first version of the YOLO family; this project reimplements a compact, regularized version to compare older architecture performance with modern detectors.
+- Evaluation metrics used in this project:
+  - `mAP@0.5` — mean average precision at IoU threshold 0.5
+  - `mAP@[0.5:0.95]` — averaged precision across multiple IoU thresholds
+  - `IoU` — Intersection over Union for bounding box overlap
+  - `F2-score` — a precision / recall metric that weights recall more heavily
+
+## What this project does
+
+- Reads an image dataset and VOC XML annotations.
+- Trains YOLOv8 on the mask dataset using Ultralytics.
+- Prepares YOLOv4 Darknet data files and supports inference through a Darknet-style pipeline.
+- Fine-tunes a Faster R-CNN detector using PyTorch torchvision.
+- Implements a YOLOv1-inspired model with batch normalization and dropout for better regularization.
+- Provides evaluation support and live webcam/video inference.
+
+## Dataset details
+
+- The dataset is image-only.
+- Training and validation images are expected under `images/train` and `images/val`.
+- Annotations are stored in `annotations/` as VOC XML files.
+- `dataset.yaml` points to the image splits and defines the class names.
 
 ## Repository Structure
 
-- `data_utils.py` - dataset loading, annotation parsing and YOLOv1 target encoding
-- `model_utils.py` - model training utilities for YOLOv8, YOLOv4, Faster R-CNN, and YOLOv1
-- `train.py` - CLI entry point for training models
-- `evaluate.py` - evaluation helper for YOLOv8 and Faster R-CNN
-- `detect.py` - real-time video detection CLI
-- `dataset.yaml` - dataset configuration for Ultralytics and training pipelines
-- `classes.txt` - class labels used by the detector
+- `data_utils.py` - dataset loading, annotation parsing, and YOLOv1 target encoding
+- `model_utils.py` - training and inference helpers for YOLOv8, YOLOv4, Faster R-CNN, and YOLOv1
+- `train.py` - command-line interface to train any supported model
+- `evaluate.py` - validation and mAP-style evaluation for YOLOv8 and Faster R-CNN
+- `detect.py` - real-time webcam/video detection utility
+- `metrics.py` - IoU, mAP, and F2-score helper functions
+- `dataset.yaml` - dataset configuration for training pipelines
+- `classes.txt` - class label file
 
 ## Setup
 
-1. Create a virtual environment and install requirements:
+1. Create a virtual environment and install dependencies:
 
 ```bash
 python -m venv venv
@@ -27,7 +53,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-2. Install Darknet or YOLOv4 weights if you want YOLOv4 transfer learning.
+2. To use YOLOv4, provide Darknet files such as `yolov4.cfg` and `yolov4.weights`.
 
 ## Training
 
@@ -43,13 +69,13 @@ Train Faster R-CNN:
 python train.py --model fasterrcnn --data dataset.yaml --epochs 12 --batch 2
 ```
 
-Train YOLOv1-style model:
+Train the YOLOv1-style model:
 
 ```bash
 python train.py --model yolo1 --data dataset.yaml --epochs 20 --batch 8
 ```
 
-Run YOLOv4 Darknet fine-tuning:
+Run YOLOv4 dataset preparation and launch Darknet training:
 
 ```bash
 python train.py --model yolov4 --data dataset.yaml --cfg yolov4.cfg --weights yolov4.weights --output runs/darknet
@@ -57,13 +83,13 @@ python train.py --model yolov4 --data dataset.yaml --cfg yolov4.cfg --weights yo
 
 ## Evaluation
 
-Evaluate a YOLOv8 model:
+Evaluate YOLOv8:
 
 ```bash
 python evaluate.py --model yolov8 --weights runs/train/yolov8_mask/weights/best.pt --data dataset.yaml
 ```
 
-Evaluate a Faster R-CNN model:
+Evaluate Faster R-CNN:
 
 ```bash
 python evaluate.py --model fasterrcnn --weights runs/rcnn/fasterrcnn_mask.pth --data dataset.yaml
@@ -71,19 +97,19 @@ python evaluate.py --model fasterrcnn --weights runs/rcnn/fasterrcnn_mask.pth --
 
 ## Live Inference
 
-Live webcam detection with YOLOv8:
+YOLOv8 webcam demo:
 
 ```bash
 python detect.py --model yolov8 --weights runs/train/yolov8_mask/weights/best.pt --names classes.txt --source 0
 ```
 
-Live webcam detection with Faster R-CNN:
+Faster R-CNN webcam demo:
 
 ```bash
 python detect.py --model fasterrcnn --weights runs/rcnn/fasterrcnn_mask.pth --names classes.txt --source 0
 ```
 
-Live webcam detection with YOLOv4:
+YOLOv4 webcam demo:
 
 ```bash
 python detect.py --model yolov4 --cfg yolov4.cfg --weights yolov4.weights --names classes.txt --source 0
@@ -91,6 +117,7 @@ python detect.py --model yolov4 --cfg yolov4.cfg --weights yolov4.weights --name
 
 ## Notes
 
-- The repository provides a complete pipeline for training, evaluation, and real-time inference.
-- `dataset.yaml` references `images/train` and `images/val` directories and expects `annotations/` to contain VOC XML annotations.
-- The YOLOv1 model is implemented with additional batch normalization and regularization layers to improve stability.
+- This project is built around image-based mask datasets, not direct video training.
+- Live inference supports webcam or video streams using trained weights.
+- The YOLOv1 variant includes additional regularization and batch normalization to improve training stability.
+- The repo is set up to compare modern YOLO and Faster R-CNN performance on mask detection.
